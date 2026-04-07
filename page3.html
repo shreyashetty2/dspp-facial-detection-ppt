@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRT Deployment & Risk Dashboard</title>
+    <style>
+        /* Professional Light Theme for Projectors */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9; 
+            color: #1e293b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .dashboard {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            width: 1050px;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Header */
+        .header {
+            background: #0f172a;
+            color: #ffffff;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .badge {
+            background: #3b82f6;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Main Content */
+        .content {
+            display: flex;
+            height: 550px;
+        }
+
+        /* Left Controls */
+        .controls {
+            width: 320px;
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-size: 12px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        select, input[type=range] {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-weight: 600;
+            color: #0f172a;
+            cursor: pointer;
+        }
+
+        input[type=range] {
+            accent-color: #0f172a;
+        }
+
+        /* Right Analytics Panel */
+        .analytics {
+            flex: 1;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* KPI Cards */
+        .kpi-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .kpi-card {
+            flex: 1;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-top: 5px;
+        }
+
+        /* Population Grid Map */
+        .grid-section {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .grid-title {
+            font-weight: 700;
+            color: #475569;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .grid-legend {
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .population-grid {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            gap: 4px;
+            flex: 1;
+        }
+
+        /* Individual "Person" Blocks */
+        .block {
+            background-color: #10b981; /* Default Green for Tracked */
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .block.missed {
+            background-color: #cbd5e1; /* Faded Gray for Blind Spot */
+            opacity: 0.4;
+            transform: scale(0.85);
+        }
+
+        /* Dynamic Policy Alert */
+        .policy-alert {
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .alert-safe { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-warn { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+        .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header">
+        <h1>Deployment Impact Dashboard: WIDER FACE Analysis</h1>
+        <div class="badge">Live Policy Simulation</div>
+    </div>
+
+    <div class="content">
+        <div class="controls">
+            <div class="input-group">
+                <label>1. Environmental Challenge</label>
+                <select id="varSelect">
+                    <option value="scale">Scale (Crowds & Distance)</option>
+                    <option value="occlusion">Occlusion (Masks & Helmets)</option>
+                    <option value="pose">Pose (Erratic Movement)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>2. Scenario Difficulty</label>
+                <select id="diffSelect">
+                    </select>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 10px 0;">
+
+            <div class="input-group">
+                <label>3. Required Confidence Threshold</label>
+                <input type="range" id="threshSlider" min="50" max="90" value="50" step="1">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: bold; color: #3b82f6; margin-top: 5px;">
+                    <span>Lenient (50)</span>
+                    <span id="threshReadout" style="font-size: 16px;">50</span>
+                    <span>Strict (90)</span>
+                </div>
+            </div>
+
+            <div class="input-group" style="margin-top: auto;">
+                <p style="font-size: 11px; color: #94a3b8; line-height: 1.5; margin: 0;">
+                    * Data strictly mirrors the decay rates mapped from Professor Yu's libfacedetection model evaluated on WIDER FACE test parameters.
+                </p>
+            </div>
+        </div>
+
+        <div class="analytics">
+            <div class="kpi-row">
+                <div class="kpi-card">
+                    <label>Actual Detection Rate</label>
+                    <div class="kpi-value" id="rateKpi">0.0%</div>
+                </div>
+                <div class="kpi-card">
+                    <label>Individuals Lost to Bias</label>
+                    <div class="kpi-value" id="lostKpi" style="color: #ef4444;">0</div>
+                </div>
+            </div>
+
+            <div class="grid-section">
+                <div class="grid-header">
+                    <div class="grid-title">Population Tracking Array (n=200)</div>
+                    <div class="grid-legend"><span style="color:#10b981;">■</span> Tracked &nbsp;&nbsp; <span style="color:#94a3b8;">■</span> Blind Spot</div>
+                </div>
+                <div class="population-grid" id="popGrid">
+                    </div>
+            </div>
+
+            <div id="policyAlert" class="policy-alert alert-safe">
+                System functioning within acceptable bounds. Bias risk is low.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // EXACT DATA FROM YOUR R PLOTS
+    // start: Rate at 50 threshold. end: Rate at 90 threshold.
+    const plotData = {
+        scale: {
+            easy: { name: "Students (Close-up/Easy)", start: 92, end: 86 },
+            medium: { name: "Stock Market (Medium)", start: 87, end: 75 },
+            hard: { name: "Parade (Extreme Crowd)", start: 95, end: 75 }
+        },
+        occlusion: {
+            easy: { name: "Interview (Clear/Easy)", start: 95, end: 89 },
+            medium: { name: "Racing (Partial/Medium)", start: 94, end: 79 },
+            hard: { name: "Riot (Heavy/Hard)", start: 95, end: 81 }
+        },
+        pose: {
+            easy: { name: "Press Conf (Static/Easy)", start: 98, end: 93 },
+            medium: { name: "Dancing (Mixed/Medium)", start: 95, end: 91 },
+            hard: { name: "Gymnastics (Erratic/Hard)", start: 90, end: 80 }
+        }
+    };
+
+    const varSelect = document.getElementById('varSelect');
+    const diffSelect = document.getElementById('diffSelect');
+    const threshSlider = document.getElementById('threshSlider');
+    const threshReadout = document.getElementById('threshReadout');
+    const rateKpi = document.getElementById('rateKpi');
+    const lostKpi = document.getElementById('lostKpi');
+    const popGrid = document.getElementById('popGrid');
+    const policyAlert = document.getElementById('policyAlert');
+
+    const totalPopulation = 200; // 200 blocks looks great visually in a 20x10 grid
+    const blocks = [];
+
+    // Initialize Grid
+    for(let i = 0; i < totalPopulation; i++) {
+        const block = document.createElement('div');
+        block.className = 'block';
+        popGrid.appendChild(block);
+        blocks.push(block);
+    }
+
+    // Populate Secondary Dropdown based on Primary Choice
+    function populateDifficulties() {
+        const selectedVar = varSelect.value;
+        const difficulties = plotData[selectedVar];
+        
+        diffSelect.innerHTML = ''; // Clear existing
+        
+        for (const [key, data] of Object.entries(difficulties)) {
+            const option = document.createElement('option');
+            option.value = key;
+            option.innerText = data.name;
+            diffSelect.appendChild(option);
+        }
+        updateDashboard(); // Run math
+    }
+
+    // Main Math & UI Update function
+    function updateDashboard() {
+        const selectedVar = varSelect.value;
+        const selectedDiff = diffSelect.value;
+        const threshold = parseInt(threshSlider.value);
+        
+        threshReadout.innerText = threshold;
+
+        // Get the exact data points from your plots
+        const data = plotData[selectedVar][selectedDiff];
+        
+        // Calculate the exact rate based on the slider position (linear interpolation)
+        // e.g. if start is 95 and end is 75, we lose 20 points over 40 slider ticks.
+        const dropAmount = data.start - data.end;
+        const sliderProgress = (threshold - 50) / 40; // 0.0 to 1.0
+        
+        const currentRate = data.start - (dropAmount * sliderProgress);
+        
+        // Update KPIs
+        rateKpi.innerText = currentRate.toFixed(1) + '%';
+        
+        // Update Visual Grid (200 blocks total)
+        const trackedCount = Math.floor((currentRate / 100) * totalPopulation);
+        const lostCount = totalPopulation - trackedCount;
+        
+        // Because 1 block = 0.5%, we scale the lost KPI back to represent actual individuals out of 100%
+        lostKpi.innerText = Math.round(100 - currentRate) + " per 100";
+
+        // Randomize visually which blocks go dark so it looks natural
+        const shuffledIndexes = [...Array(totalPopulation).keys()].sort(() => 0.5 - Math.random());
+        
+        blocks.forEach(b => b.className = 'block'); // reset all to green
+        
+        for(let i = 0; i < lostCount; i++) {
+            blocks[shuffledIndexes[i]].className = 'block missed'; // fade them out
+        }
+
+        // Policy Alert Logic
+        if (currentRate >= 90) {
+            policyAlert.className = 'policy-alert alert-safe';
+            policyAlert.innerHTML = '<strong>✔ SAFE:</strong> System functioning within acceptable bounds. Bias risk is low.';
+        } else if (currentRate >= 80) {
+            policyAlert.className = 'policy-alert alert-warn';
+            policyAlert.innerHTML = '<strong>⚠ CAUTION:</strong> Algorithmic brittleness detected. Moderate tracking loss in specific environment.';
+        } else {
+            policyAlert.className = 'policy-alert alert-danger';
+            policyAlert.innerHTML = '<strong>❌ CRITICAL POLICY FAILURE:</strong> Unacceptable bias risk. The strict confidence threshold has caused the algorithm to fail disproportionately in this environment.';
+        }
+    }
+
+    // Event Listeners
+    varSelect.addEventListener('change', populateDifficulties);
+    diffSelect.addEventListener('change', updateDashboard);
+    threshSlider.addEventListener('input', updateDashboard);
+
+    // Initial Load
+    populateDifficulties();
+</script>
+</body>
+</html>
