@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRT Surveillance Dashboard</title>
+    <style>
+        /* High-Tech, Dark Surveillance Theme */
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #050b14;
+            color: #00ffcc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background-image: 
+                linear-gradient(rgba(0, 255, 204, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 204, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        .dashboard {
+            background: rgba(10, 15, 25, 0.95);
+            border: 1px solid #00ffcc;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2), inset 0 0 20px rgba(0, 255, 204, 0.05);
+            border-radius: 4px;
+            width: 1000px;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background: #00221c;
+            border-bottom: 1px solid #00ffcc;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .recording-dot {
+            color: #ff3333;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.2; } 100% { opacity: 1; } }
+
+        /* Main Content Split */
+        .main-view {
+            display: flex;
+            height: 500px;
+        }
+
+        /* Camera Feed */
+        .camera-feed {
+            flex: 1;
+            position: relative;
+            background: #02060d;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 15px;
+            overflow: hidden;
+        }
+
+        .scanline {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Target Styles */
+        .target {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+        }
+
+        .silhouette {
+            width: 30px;
+            height: 30px;
+            fill: #1a2a3a; /* Dark, un-tracked figure */
+            transition: fill 0.3s ease;
+        }
+
+        /* The AI Bounding Box */
+        .bounding-box {
+            position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-end;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        /* Tracked State */
+        .target.tracked .silhouette {
+            fill: #004433; /* Slightly illuminated */
+        }
+
+        .target.tracked .bounding-box {
+            border: 2px solid #00ffcc; /* Target Locked */
+            box-shadow: 0 0 8px rgba(0, 255, 204, 0.4), inset 0 0 8px rgba(0, 255, 204, 0.2);
+            opacity: 1;
+        }
+
+        /* Box Corners */
+        .target.tracked .bounding-box::before,
+        .target.tracked .bounding-box::after {
+            content: ''; position: absolute; width: 6px; height: 6px; border: 2px solid #fff;
+        }
+        .target.tracked .bounding-box::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .target.tracked .bounding-box::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+        .conf-label {
+            background: #00ffcc;
+            color: #000;
+            font-size: 9px;
+            padding: 1px 3px;
+            margin-top: -10px;
+            margin-right: -10px;
+            font-weight: bold;
+        }
+
+        /* Control Panel */
+        .side-panel {
+            width: 280px;
+            background: #0a111a;
+            border-left: 1px solid #00ffcc;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            z-index: 20;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        label {
+            font-size: 12px;
+            color: #88ffcc;
+            text-transform: uppercase;
+        }
+
+        select, input[type=range] {
+            background: #02060d;
+            border: 1px solid #00ffcc;
+            color: #00ffcc;
+            padding: 8px;
+            font-family: 'Share Tech Mono', monospace;
+            outline: none;
+            cursor: pointer;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            height: 4px;
+            background: #004433;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #00ffcc;
+            cursor: pointer;
+        }
+
+        /* Analytics Data */
+        .stat-box {
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            padding: 10px;
+            background: rgba(0, 255, 204, 0.05);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            margin: 5px 0;
+            color: #fff;
+        }
+
+        #policyAlert {
+            color: #ff3333;
+            border-color: #ff3333;
+            background: rgba(255, 51, 51, 0.1);
+            display: none;
+            animation: blink 1s infinite;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="dashboard">
+    <div class="header">
+        <h1>YuNet // Tactical Surveillance UI</h1>
+        <div><span class="recording-dot">●</span> LIVE FEED</div>
+    </div>
+
+    <div class="main-view">
+        <div class="camera-feed" id="feed">
+            <div class="scanline"></div>
+            </div>
+
+        <div class="side-panel">
+            <div class="control-group">
+                <label>Target Environment (Data Input)</label>
+                <select id="feedSelect">
+                    <option value="easy">CAM 01: Classroom (Static/Easy)</option>
+                    <option value="hard">DRONE 04: Protest (Crowd/Hard)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label>AI Confidence Filter: <span id="threshDisp" style="color:#fff;">50</span>%</label>
+                <input type="range" id="threshold" min="50" max="90" value="50" step="1">
+                <div style="font-size: 10px; color: #55aa88;">Burden of proof required for positive ID.</div>
+            </div>
+
+            <div class="control-group stat-box">
+                <label>Targets Tracked</label>
+                <div class="stat-value" id="trackRate">100%</div>
+                <div style="font-size: 10px; color: #55aa88;" id="trackCount">48/48 Identified</div>
+            </div>
+
+            <div class="control-group stat-box" id="policyAlert">
+                <label style="color: #ff3333;">! POLICY ALERT !</label>
+                <div style="font-size: 12px; margin-top: 5px;">Massive tracking failure detected. Algorithm is brittle in current environment parameters.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const feed = document.getElementById('feed');
+    const feedSelect = document.getElementById('feedSelect');
+    const thresholdSlider = document.getElementById('threshold');
+    const threshDisp = document.getElementById('threshDisp');
+    const trackRate = document.getElementById('trackRate');
+    const trackCount = document.getElementById('trackCount');
+    const policyAlert = document.getElementById('policyAlert');
+
+    const totalTargets = 48; // Fits nicely in the 8-column grid
+    const targetsData = [];
+    const targetElements = [];
+
+    // Generic person silhouette
+    const silhouetteSVG = `<svg class="silhouette" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+
+    // 1. Generate data reflecting your Brittleness Analysis
+    for(let i=0; i<totalTargets; i++) {
+        // Easy Mode: highly confident (75-100)
+        let easyVal = Math.random() < 0.1 ? Math.floor(Math.random()*20)+75 : Math.floor(Math.random()*11)+90;
+        
+        // Hard Mode: Starts high enough to pass 50%, but heavily concentrated in the 60s and 70s to crash later.
+        let r = Math.random();
+        let hardVal;
+        if(r < 0.05) hardVal = Math.floor(Math.random()*20)+35; // 35-54 (Immediate fails)
+        else if (r < 0.40) hardVal = Math.floor(Math.random()*20)+55; // 55-74 (Brittle zone)
+        else if (r < 0.70) hardVal = Math.floor(Math.random()*15)+75; // 75-89 (Drops at max threshold)
+        else hardVal = Math.floor(Math.random()*11)+90; // 90-100 (Survivors)
+
+        targetsData.push({ easy: easyVal, hard: hardVal });
+    }
+
+    // 2. Build the DOM
+    targetsData.forEach((data) => {
+        const div = document.createElement('div');
+        div.className = 'target tracked';
+        
+        const box = document.createElement('div');
+        box.className = 'bounding-box';
+        
+        const label = document.createElement('div');
+        label.className = 'conf-label';
+        label.innerText = '99%';
+
+        box.appendChild(label);
+        div.innerHTML = silhouetteSVG;
+        div.appendChild(box);
+        
+        feed.appendChild(div);
+
+        targetElements.push({
+            dom: div,
+            label: label,
+            data: data
+        });
+    });
+
+    // 3. Logic to update the "Camera Feed"
+    function scanTargets() {
+        const thresh = parseInt(thresholdSlider.value);
+        const env = feedSelect.value;
+        threshDisp.innerText = thresh;
+
+        let tracking = 0;
+
+        targetElements.forEach(item => {
+            const score = env === 'easy' ? item.data.easy : item.data.hard;
+            
+            // Add a tiny bit of random visual flicker to the label to make it look like "live AI"
+            let visualScore = score;
+            if(Math.random() > 0.5) visualScore -= Math.floor(Math.random()*3);
+            item.label.innerText = visualScore + '%';
+
+            if(score >= thresh) {
+                item.dom.className = 'target tracked';
+                tracking++;
+            } else {
+                item.dom.className = 'target';
+            }
+        });
+
+        // Analytics Update
+        const rate = Math.round((tracking / totalTargets) * 100);
+        trackRate.innerText = rate + '%';
+        trackCount.innerText = `${tracking}/${totalTargets} Identified`;
+
+        // The Policy Insight Alert
+        if(rate < 70) {
+            policyAlert.style.display = 'block';
+            trackRate.style.color = '#ff3333';
+        } else {
+            policyAlert.style.display = 'none';
+            trackRate.style.color = '#fff';
+        }
+    }
+
+    // Event Listeners
+    thresholdSlider.addEventListener('input', scanTargets);
+    feedSelect.addEventListener('change', scanTargets);
+
+    // Init
+    scanTargets();
+
+    // Add random flicker effect to make the CCTV feed feel "alive"
+    setInterval(() => {
+        const thresh = parseInt(thresholdSlider.value);
+        const env = feedSelect.value;
+        targetElements.forEach(item => {
+            const score = env === 'easy' ? item.data.easy : item.data.hard;
+            // If it's right on the edge of the threshold, make the box occasionally drop
+            if(score >= thresh && score < thresh + 3 && Math.random() > 0.8) {
+                item.dom.className = 'target';
+                setTimeout(() => { if(score >= parseInt(thresholdSlider.value)) item.dom.className = 'target tracked'; }, 300);
+            }
+        });
+    }, 1000);
+
+</script>
+</body>
+</html>
