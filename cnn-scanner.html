@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CNN Feature Extraction Simulator</title>
+    <style>
+        /* High-Tech Dark Theme */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #0b1120;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            background: #1e293b;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 900px;
+            max-width: 100%;
+            border: 1px solid #334155;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #0f172a;
+            padding: 20px 30px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #38bdf8;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .main-content {
+            display: flex;
+            padding: 30px;
+            gap: 40px;
+        }
+
+        /* Controls Panel */
+        .controls {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-btn {
+            background: #0f172a;
+            border: 1px solid #38bdf8;
+            color: #38bdf8;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .control-btn:hover {
+            background: #1e3a8a;
+        }
+
+        .control-btn.active {
+            background: #38bdf8;
+            color: #0f172a;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .explanation {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #94a3b8;
+            min-height: 120px;
+        }
+
+        .explanation span {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        /* Visualizer Panel */
+        .visualizer {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .scan-area {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* The SVG Face */
+        .face {
+            width: 160px;
+            height: 160px;
+            transition: transform 0.8s ease-in-out;
+        }
+
+        .face-skin { fill: #cbd5e1; }
+        .face-feature { fill: #1e293b; }
+        
+        /* The Mask */
+        .mask {
+            fill: #38bdf8;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .mask-strings {
+            stroke: #e0f2fe;
+            stroke-width: 2;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        /* CNN Scanner Box */
+        .scanner-box {
+            position: absolute;
+            width: 100%;
+            height: 40px;
+            background: rgba(56, 189, 248, 0.2);
+            border-top: 2px solid #38bdf8;
+            border-bottom: 2px solid #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+            top: 0;
+            animation: scan 3s infinite linear;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: -40px; }
+            100% { top: 250px; }
+        }
+
+        /* Metrics */
+        .metrics {
+            width: 100%;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #1e293b;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #22c55e;
+            width: 0%;
+            transition: width 0.5s ease, background-color 0.5s ease;
+        }
+
+        .status-badge {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 1px;
+            transition: all 0.5s ease;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>YuNet CNN Layer Visualization</h1>
+        <div style="font-size: 14px; color: #64748b; font-weight: bold;">LIVE FEATURE EXTRACTION</div>
+    </div>
+
+    <div class="main-content">
+        <div class="controls">
+            <button class="control-btn active" onclick="setMode('standard')">
+                1. Standard (Clear Face) <span>&#9654;</span>
+            </button>
+            <button class="control-btn" onclick="setMode('occlusion')">
+                2. Occlusion (Wearing Mask) <span>&#9654;</span>
+            </button>
+            <button class="control-btn" onclick="setMode('pose')">
+                3. Pose (Erratic Angle) <span>&#9654;</span>
+            </button>
+
+            <div class="explanation" id="expText">
+                <span>SYSTEM NORMAL:</span> The CNN filter successfully slides across the image. It expects to find horizontal eye geometries at the top, a vertical nose geometry in the center, and a horizontal mouth geometry at the bottom. 
+                <br><br>All spatial patterns match the training dataset.
+            </div>
+        </div>
+
+        <div class="visualizer">
+            <div class="scan-area">
+                <div class="scanner-box"></div>
+                
+                <svg class="face" id="faceSvg" viewBox="0 0 100 100">
+                    <rect x="20" y="10" width="60" height="80" rx="30" class="face-skin"/>
+                    
+                    <circle cx="35" cy="40" r="5" class="face-feature"/>
+                    <circle cx="65" cy="40" r="5" class="face-feature"/>
+                    
+                    <polygon points="50,45 45,60 55,60" class="face-feature"/>
+                    
+                    <path d="M 35 75 Q 50 85 65 75" stroke="#1e293b" stroke-width="3" fill="none" class="face-feature" id="mouthPath"/>
+
+                    <path d="M 20 60 L 80 60 L 75 85 Q 50 95 25 85 Z" class="mask" id="maskPolygon"/>
+                    <line x1="20" y1="60" x2="0" y2="40" class="mask-strings" id="string1"/>
+                    <line x1="80" y1="60" x2="100" y2="40" class="mask-strings" id="string2"/>
+                </svg>
+            </div>
+
+            <div class="metrics">
+                <div class="metric-row">
+                    <span>Upper Geometry (Eyes)</span>
+                    <span id="eyeScore">98% Match</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="eyeBar" style="width: 98%; background: #22c55e;"></div></div>
+
+                <div class="metric-row">
+                    <span>Lower Geometry (Nose/Mouth)</span>
+                    <span id="mouthScore">95% Match</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" id="mouthBar" style="width: 95%; background: #22c55e;"></div></div>
+
+                <div class="status-badge" id="statusBadge" style="background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e;">
+                    TARGET IDENTIFIED: 96%
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Elements
+    const faceSvg = document.getElementById('faceSvg');
+    const maskPolygon = document.getElementById('maskPolygon');
+    const string1 = document.getElementById('string1');
+    const string2 = document.getElementById('string2');
+    const expText = document.getElementById('expText');
+    const btns = document.querySelectorAll('.control-btn');
+    
+    // Progress Bars
+    const eyeBar = document.getElementById('eyeBar');
+    const mouthBar = document.getElementById('mouthBar');
+    const eyeScore = document.getElementById('eyeScore');
+    const mouthScore = document.getElementById('mouthScore');
+    const statusBadge = document.getElementById('statusBadge');
+
+    function updateMetrics(eyeVal, mouthVal, statusText, color) {
+        eyeBar.style.width = eyeVal + '%';
+        eyeBar.style.background = eyeVal > 50 ? '#22c55e' : '#ef4444';
+        eyeScore.innerText = eyeVal + '% Match';
+
+        mouthBar.style.width = mouthVal + '%';
+        mouthBar.style.background = mouthVal > 50 ? '#22c55e' : '#ef4444';
+        mouthScore.innerText = mouthVal + '% Match';
+
+        const total = Math.round((eyeVal + mouthVal) / 2);
+        statusBadge.innerText = statusText + ': ' + total + '%';
+        statusBadge.style.background = `rgba(${color}, 0.2)`;
+        statusBadge.style.color = `rgb(${color})`;
+        statusBadge.style.borderColor = `rgb(${color})`;
+    }
+
+    function setMode(mode) {
+        // Reset Buttons
+        btns.forEach(btn => btn.classList.remove('active'));
+        event.currentTarget.classList.add('active');
+
+        if (mode === 'standard') {
+            faceSvg.style.transform = 'rotate(0deg)';
+            maskPolygon.style.opacity = '0';
+            string1.style.opacity = '0';
+            string2.style.opacity = '0';
+            
+            expText.innerHTML = `<span>SYSTEM NORMAL:</span> The CNN filter successfully slides across the image. It expects to find horizontal eye geometries at the top, a vertical nose geometry in the center, and a horizontal mouth geometry at the bottom. <br><br>All spatial patterns match the training dataset perfectly.`;
+            
+            updateMetrics(98, 95, "TARGET IDENTIFIED", "34, 197, 94"); // Green
+        } 
+        else if (mode === 'occlusion') {
+            faceSvg.style.transform = 'rotate(0deg)';
+            maskPolygon.style.opacity = '1';
+            string1.style.opacity = '1';
+            string2.style.opacity = '1';
+            
+            expText.innerHTML = `<span>OCCLUSION ERROR (Brittleness):</span> The CNN scanner finds the eyes correctly, but when it slides down, the nose and mouth pixels are physically missing, replaced by the mask.<br><br>Because the bottom half of the mathematical equation is erased, the CNN cannot confidently classify this object as a face. The overall certainty plummets.`;
+            
+            updateMetrics(95, 12, "LOW CONFIDENCE", "245, 158, 11"); // Orange
+        } 
+        else if (mode === 'pose') {
+            maskPolygon.style.opacity = '0';
+            string1.style.opacity = '0';
+            string2.style.opacity = '0';
+            faceSvg.style.transform = 'rotate(180deg)';
+            
+            expText.innerHTML = `<span>GEOMETRY ERROR (Brittleness):</span> The CNN filter is hard-coded to look for "eyes above a mouth". Because the gymnast is upside down, the filter hits the mouth first when scanning from the top.<br><br>The spatial pixel hierarchy is completely inverted. The math fails entirely because the features are in the wrong zones.`;
+            
+            updateMetrics(18, 15, "DETECTION FAILED", "239, 68, 68"); // Red
+        }
+    }
+</script>
+</body>
+</html>
