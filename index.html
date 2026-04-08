@@ -1,66 +1,100 @@
-<style>
-    :root {
-        --primary: #6c5ce7;
-        --bg: #f8f9fa;
-        --text: #2d3436;
-    }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DSPP Presentation | Algorithmic Brittleness</title>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --bg: #f8f9fa;
+            --text: #2d3436;
+        }
 
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: var(--bg);
-        color: var(--text);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px 20px;
-        margin: 0;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
 
-    header {
-        text-align: center;
-        margin-bottom: 50px;
-        max-width: 800px;
-    }
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            max-width: 800px;
+        }
 
-    h1 { margin-bottom: 10px; color: var(--primary); }
-    h2 { font-weight: 400; opacity: 0.8; font-size: 1.2rem; }
+        h1 { margin-bottom: 10px; color: var(--primary); }
+        h2 { font-weight: 400; opacity: 0.8; font-size: 1.2rem; }
 
-    .grid {
-        display: grid;
-        /* Updated this line to control max box width */
-        grid-template-columns: repeat(auto-fit, minmax(250px, 300px));
-        gap: 25px;
-        width: 100%;
-        max-width: 1000px;
-        /* Added this to center the boxes */
-        justify-content: center;
-    }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1000px;
+        }
 
-    .tile {
-        background: white;
-        padding: 30px;
-        border-radius: 20px;
-        text-decoration: none;
-        color: inherit;
-        text-align: center;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-        display: flex;
-        flex-direction: column;
-        align-items: center; /* Centers content inside the tile */
-        justify-content: center;
-        min-height: 150px;
-    }
+        .tile {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: inherit;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 150px;
+        }
 
-    .tile:hover {
-        transform: translateY(-10px);
-        border-color: var(--primary);
-        box-shadow: 0 15px 30px rgba(108, 92, 231, 0.2);
-    }
+        .tile:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+            box-shadow: 0 15px 30px rgba(108, 92, 231, 0.2);
+        }
 
-    .tile-title {
-        font-weight: bold;
-        font-size: 1.1rem;
-    }
-</style>
+        .tile i {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .tile-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>DSPP: Regulating the use of facial recognition in policy settings presentation</h1>
+        <h2>Algorithmic Brittleness in Facial Recognition Simulations by Shreya Shetty</h2>
+    </header>
+
+    <div class="grid">
+        <a href="policy-dash.html" class="tile">
+            <div class="tile-title">Policy Dashboard</div>
+        </a>
+        <a href="cnn-scanner.html" class="tile">
+            <div class="tile-title">CNN Scanner Simulator</div>
+        </a>
+        
+        <a href="interactive_element.html" class="tile">
+            <div class="tile-title">Interactive Elements</div>
+        </a>
+
+        <a href="surveillance-sim.html" class="tile">
+            <div class="tile-title">Surveillance Simulator</div>
+        </a>
+    </div>
+
+</body>
+</html>
